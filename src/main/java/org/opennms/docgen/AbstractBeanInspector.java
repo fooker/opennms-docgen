@@ -66,36 +66,40 @@ public abstract class AbstractBeanInspector implements Inspector {
         return new String(chars);
     }
 
-    private Iterator<MethodDoc> findClassMethods(final ClassDoc clazz, final String name) {
+    private Iterator<MethodDoc> findClassMethods(final ClassDoc clazz,
+                                                 final String name) {
         return Iterators.filter(Arrays.asList(clazz.methods()).iterator(),
                                 new Predicate<MethodDoc>() {
                                     @Override
                                     public boolean apply(final MethodDoc method) {
-                                        return name == null ||
-                                               method.name().equals(name);
+                                        return name == null
+                                               || method.name().equals(name);
                                     }
                                 });
     }
 
     private Iterator<ClassDoc> findSuperClasses(final ClassDoc clazz) {
         List<ClassDoc> clazzes = new LinkedList<>();
-        
+
         for (ClassDoc superclazz = clazz;
-                superclazz != null;
-                superclazz = superclazz.superclass()) {
+             superclazz != null;
+             superclazz = superclazz.superclass()) {
             clazzes.add(superclazz);
         }
 
         return clazzes.iterator();
     }
 
-    public Iterator<MethodDoc> findMethods(final ClassDoc clazz, final String name) {
-        return Iterators.concat(Iterators.transform(this.findSuperClasses(clazz), new Function<ClassDoc, Iterator<MethodDoc>>() {
-            @Override
-            public Iterator<MethodDoc> apply(final ClassDoc clazz) {
-                return AbstractBeanInspector.this.findClassMethods(clazz, name);
-            }
-        }));
+    public Iterator<MethodDoc> findMethods(final ClassDoc clazz,
+                                           final String name) {
+        return Iterators.concat(Iterators.transform(this.findSuperClasses(clazz),
+                                                    new Function<ClassDoc, Iterator<MethodDoc>>() {
+                                                        @Override
+                                                        public Iterator<MethodDoc> apply(final ClassDoc clazz) {
+                                                            return AbstractBeanInspector.this.findClassMethods(clazz,
+                                                                                                               name);
+                                                        }
+                                                    }));
     }
 
     public static boolean isSetter(final MethodDoc method) {
@@ -106,14 +110,17 @@ public abstract class AbstractBeanInspector implements Inspector {
                && method.parameters().length == 1;
     }
 
-    public MethodDoc findSetter(final ClassDoc clazz, final String name) {
-        return Iterators.find(this.findMethods(clazz, "set" + capitalize(name)),
+    public MethodDoc findSetter(final ClassDoc clazz,
+                                final String name) {
+        return Iterators.find(this.findMethods(clazz,
+                                               "set" + capitalize(name)),
                               new Predicate<MethodDoc>() {
                                   @Override
                                   public boolean apply(final MethodDoc method) {
                                       return isSetter(method);
                                   }
-                              }, null);
+                              },
+                              null);
     }
 
     public static boolean isGetter(final MethodDoc method) {
@@ -124,18 +131,22 @@ public abstract class AbstractBeanInspector implements Inspector {
                && method.parameters().length == 0;
     }
 
-    public MethodDoc findGetter(final ClassDoc clazz, final String name) {
-        return Iterators.find(this.findMethods(clazz, "get" + capitalize(name)),
+    public MethodDoc findGetter(final ClassDoc clazz,
+                                final String name) {
+        return Iterators.find(this.findMethods(clazz,
+                                               "get" + capitalize(name)),
                               new Predicate<MethodDoc>() {
                                   @Override
                                   public boolean apply(final MethodDoc method) {
                                       return isGetter(method);
                                   }
-                              }, null);
+                              },
+                              null);
     }
 
     public Iterator<Property> findProperties(final ClassDoc clazz) {
-        return Iterators.filter(Iterators.transform(this.findMethods(clazz, null),
+        return Iterators.filter(Iterators.transform(this.findMethods(clazz,
+                                                                     null),
                                                     new Function<MethodDoc, Property>() {
                                                         @Override
                                                         public Property apply(final MethodDoc setter) {
